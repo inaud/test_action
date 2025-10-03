@@ -27,6 +27,7 @@ jobs:
 
       - name: Download latest other tag source
         run: |
+          mkdir -p "${RUNNER_TEMP}/mytemp"
           pushd "${RUNNER_TEMP}"
           OWNER="inaud"           # リポジトリオーナー
           REPO="zig_print_test"   # リポジトリ名
@@ -37,6 +38,7 @@ jobs:
           #pushd ${REPO}-${LATEST_TAG}
           #echo "Working in $(pwd)"
           #ls -la
+          tree
           popd
       - name: zip作成
         run: |
