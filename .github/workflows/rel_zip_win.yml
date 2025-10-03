@@ -14,6 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       REL_NAME: "RelFile"
+      OTHER_REPO: "zig_print_test"
 
     steps:
       - uses: actions/checkout@v4
@@ -33,24 +34,23 @@ jobs:
           mkdir -p "${RUNNER_TEMP}/mytemp"
           pushd "${RUNNER_TEMP}/mytemp"
           OWNER="inaud"
-          REPO="zig_print_test"
-          echo "Fetching tags from https://api.github.com/repos/${OWNER}/${REPO}/tags"
-          LATEST_TAG=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${OWNER}/${REPO}/tags | jq -r '.[0].name')
+          echo "Fetching tags from https://api.github.com/repos/${OWNER}/${OTHER_REPO}/tags"
+          LATEST_TAG=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${OWNER}/${OTHER_REPO}/tags | jq -r '.[0].name')
           if [ -z "$LATEST_TAG" ]; then
-            echo "Error: No tags found in ${OWNER}/${REPO}"
+            echo "Error: No tags found in ${OWNER}/${OTHER_REPO}"
             exit 1
           fi
           echo "Latest tag: ${LATEST_TAG}"
-          DOWNLOAD_URL="https://github.com/${OWNER}/${REPO}/archive/refs/tags/${LATEST_TAG}.zip"
+          DOWNLOAD_URL="https://github.com/${OWNER}/${OTHER_REPO}/archive/refs/tags/${LATEST_TAG}.zip"
           echo "Downloading from ${DOWNLOAD_URL}"
-          curl -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o "${REPO}-${LATEST_TAG}.zip" "${DOWNLOAD_URL}"
-          if [ ! -f "${REPO}-${LATEST_TAG}.zip" ]; then
-            echo "Error: Failed to download ${REPO}-${LATEST_TAG}.zip"
+          curl -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o "${OTHER_REPO}-${LATEST_TAG}.zip" "${DOWNLOAD_URL}"
+          if [ ! -f "${OTHER_REPO}-${LATEST_TAG}.zip" ]; then
+            echo "Error: Failed to download ${OTHER_REPO}-${LATEST_TAG}.zip"
             ls -la
             exit 1
           fi
-          unzip -o "${REPO}-${LATEST_TAG}.zip"  # -o で上書きを許可
-          mv "${REPO}-${LATEST_TAG}" "${REPO}"
+          unzip -o "${OTHER_REPO}-${LATEST_TAG}.zip"  # -o で上書きを許可
+          mv "${OTHER_REPO}-${LATEST_TAG}" "${OTHER_REPO}"
           echo "Working in $(pwd)"
           tree || ls -R
           popd
@@ -65,7 +65,7 @@ jobs:
           pushd "${RUNNER_TEMP}/mytemp"
           unzip -o "$ZIP_FILE" -d "${REL_NAME}"
           tree
-          zip -r  "$ZIP_FILE" "{REPO}" "${REL_NAME}"
+          zip -r  "$ZIP_FILE" "{OTHER_REPO}" "${REL_NAME}"
           tree || ls -R
           popd
           echo "ZIP_FILE=${RUNNER_TEMP}/mytemp/${ZIP_FILE}" >> $GITHUB_ENV
