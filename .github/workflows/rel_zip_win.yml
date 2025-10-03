@@ -50,6 +50,7 @@ jobs:
             exit 1
           fi
           unzip -o "${OTHER_REPO}-${LATEST_TAG}.zip"  # -o で上書きを許可
+          rm "${OTHER_REPO}-${LATEST_TAG}.zip"
           mv "${OTHER_REPO}-${LATEST_TAG}" "${OTHER_REPO}"
           echo "Working in $(pwd)"
           tree || ls -R
@@ -63,9 +64,11 @@ jobs:
           zip -r "$ZIP_FILE" dir1 dir2 Makefile README.md
           cp "$ZIP_FILE" "${RUNNER_TEMP}/mytemp/"
           pushd "${RUNNER_TEMP}/mytemp"
-          unzip -o "$ZIP_FILE" -d "${REL_NAME}"
+          unzip -o "${ZIP_FILE}" -d "${REL_NAME}"
+          rm "${ZIP_FILE}"
           tree
-          zip -r  "$ZIP_FILE" "${OTHER_REPO}" "${REL_NAME}"
+          echo zip -r  "${ZIP_FILE}" "${OTHER_REPO}" "${REL_NAME}"
+          zip -r  "${ZIP_FILE}" "${OTHER_REPO}" "${REL_NAME}"
           tree || ls -R
           popd
           echo "ZIP_FILE=${RUNNER_TEMP}/mytemp/${ZIP_FILE}" >> $GITHUB_ENV
