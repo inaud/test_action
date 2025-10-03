@@ -28,7 +28,7 @@ jobs:
       - name: Download latest other tag source
         run: |
           mkdir -p "${RUNNER_TEMP}/mytemp"
-          pushd "${RUNNER_TEMP}"
+          pushd "${RUNNER_TEMP}/mytemp"
           OWNER="inaud"           # リポジトリオーナー
           REPO="zig_print_test"   # リポジトリ名
           LATEST_TAG=$(curl -s https://api.github.com/repos/${OWNER}/${REPO}/tags | jq -r '.[0].name')
