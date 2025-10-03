@@ -19,15 +19,35 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Makefile実行
-        run: make   # 必要なら 'make build' などターゲット名を指定
+        run: |
+          make   # 必要なら 'make build' などターゲット名を指定
 
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
+      - name: Download latest other tag source
+        run: |
+          pushd "${RUNNER_TEMP}"
+          OWNER="inaud"           # リポジトリオーナー
+          REPO="zig_print_test"   # リポジトリ名
+          LATEST_TAG=$(curl -s https://api.github.com/repos/${OWNER}/${REPO}/tags | jq -r '.[0].name')
+          curl -L -O https://github.com/${OWNER}/${REPO}/archive/refs/tags/${LATEST_TAG}.zip
+          unzip ${REPO}-${LATEST_TAG}.zip
+          # 必要に応じてフォルダ移動
+          #pushd ${REPO}-${LATEST_TAG}
+          #echo "Working in $(pwd)"
+          #ls -la
+          popd
       - name: zip作成
         run: |
-          # GitHub Actionsの変数をbash変数に代入
           REF_NAME="${{ github.ref_name }}"
           ZIP_FILE="${REL_NAME}-${REF_NAME}.zip"
-          # 以降はbash変数で操作
           zip -r "$ZIP_FILE" dir1 dir2 Makefile README.md
+          cp "$ZIP_FILE" "${RUNNER_TEMP}/"
+          pushd "${RUNNER_TEMP}"
+          unzip  "$ZIP_FILE"
+          tree
+          popd
         shell: bash
 
       - name: リリースにアップロード
