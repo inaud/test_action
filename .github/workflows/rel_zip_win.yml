@@ -21,10 +21,12 @@ jobs:
       - name: zip作成
         run: |
           zip -r "${REL_NAME}-${{ github.ref_name }}.zip"  dir1 dir2 Makefile README.md
+      - run: ls -lh
+      - run: echo "ZIPファイル名: ${REL_NAME}-${{ github.ref_name }}.zip"
 
       - name: リリースにアップロード
         uses: softprops/action-gh-release@v2
         with:
-          files: "${REL_NAME}-${{ github.ref_name }}.zip"
+          files: "RelFile-${{ github.ref_name }}.zip"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
