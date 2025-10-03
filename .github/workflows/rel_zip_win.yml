@@ -3,7 +3,7 @@ name: rel_zip_win
 on:
   push:
     tags:
-      - 'v*'  # 例: v1.0.0
+      - 'v*'      # 例: v1.0.0
       - '[0-9]*'  # 例: 1.0.0, 2.1.3
 
 permissions:
@@ -13,8 +13,9 @@ jobs:
   build-and-release:
     runs-on: ubuntu-latest
     env:
-      REL_NAME: "RelFile"
+      REL_NAME: "${{ github.repository_name }}"
       OTHER_REPO: "zig_print_test"
+      OWNER: "${{ github.repository_owner }}"
 
     steps:
       - uses: actions/checkout@v4
@@ -22,18 +23,17 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y jq zip unzip
+          sudo apt-get install -y jq
 
       - name: Run Makefile
         run: |
-          make  # 必要なら 'make build' などターゲット名を指定
+          make
         shell: bash
 
       - name: Download latest other tag source
         run: |
           mkdir -p "${RUNNER_TEMP}/mytemp"
           pushd "${RUNNER_TEMP}/mytemp"
-          OWNER="inaud"
           echo "Fetching tags from https://api.github.com/repos/${OWNER}/${OTHER_REPO}/tags"
           LATEST_TAG=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${OWNER}/${OTHER_REPO}/tags | jq -r '.[0].name')
           if [ -z "$LATEST_TAG" ]; then
