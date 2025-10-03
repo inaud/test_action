@@ -50,6 +50,7 @@ jobs:
             exit 1
           fi
           unzip -o "${REPO}-${LATEST_TAG}.zip"  # -o で上書きを許可
+          mv "${REPO}-${LATEST_TAG}" "${REPO}"
           echo "Working in $(pwd)"
           tree || ls -R
           popd
@@ -66,12 +67,14 @@ jobs:
             ls -la
             exit 1
           fi
-          cp "$ZIP_FILE" "${RUNNER_TEMP}/"
-          pushd "${RUNNER_TEMP}"
+          cp "$ZIP_FILE" "${RUNNER_TEMP}/mytemp"
+          pushd "${RUNNER_TEMP}/mytemp"
           unzip -o "$ZIP_FILE"
+          mv "${REL_NAME}-${REF_NAME}" "${REL_NAME}"
+          zip -r  "$ZIP_FILE" "{REPO}" "${REL_NAME}"
           tree || ls -R
           popd
-          echo "ZIP_FILE=${RUNNER_TEMP}/${ZIP_FILE}" >> $GITHUB_ENV
+          echo "ZIP_FILE=${RUNNER_TEMP}/mytemp/${ZIP_FILE}" >> $GITHUB_ENV
         shell: bash
 
       - name: Upload to release
