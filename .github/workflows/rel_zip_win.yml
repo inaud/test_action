@@ -63,9 +63,8 @@ jobs:
           zip -r "$ZIP_FILE" dir1 dir2 Makefile README.md
           cp "$ZIP_FILE" "${RUNNER_TEMP}/mytemp/"
           pushd "${RUNNER_TEMP}/mytemp"
-          unzip -o "$ZIP_FILE"
+          unzip -o "$ZIP_FILE" -d "${REL_NAME}"
           tree
-          mv "${REL_NAME}-${REF_NAME}" "${REL_NAME}"
           zip -r  "$ZIP_FILE" "{REPO}" "${REL_NAME}"
           tree || ls -R
           popd
