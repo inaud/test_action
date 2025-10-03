@@ -10,18 +10,18 @@ jobs:
   build-and-release:
     runs-on: ubuntu-latest
     env:
-      REL_NAME: "relFile"
+      REL_NAME: "RelFile"
 
     steps:
       - uses: actions/checkout@v4
 
       - name: zip作成
         run: |
-          zip -r ${REL_NAME}.zip -i dir1 dir2 Makefile README.md
+          zip -r "${REL_NAME}-${{ github.ref_name }}.zip"  dir1 dir2 Makefile README.md
 
       - name: リリースにアップロード
         uses: softprops/action-gh-release@v2
         with:
-          files: ${REL_NAME}.zip
+          files: "${REL_NAME}-${{ github.ref_name }}.zip"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
