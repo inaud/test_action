@@ -17,7 +17,7 @@ jobs:
 
       - name: zip作成
         run: |
-          zip -r ${REL_NAME}.zip dir1 dir2 Makefile README.md
+          zip -r ${REL_NAME}.zip -i dir1 dir2 Makefile README.md
 
       - name: リリースにアップロード
         uses: softprops/action-gh-release@v2
