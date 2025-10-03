@@ -65,7 +65,7 @@ jobs:
           pushd "${RUNNER_TEMP}/mytemp"
           unzip -o "$ZIP_FILE" -d "${REL_NAME}"
           tree
-          zip -r  "$ZIP_FILE" "{OTHER_REPO}" "${REL_NAME}"
+          zip -r  "$ZIP_FILE" "${OTHER_REPO}" "${REL_NAME}"
           tree || ls -R
           popd
           echo "ZIP_FILE=${RUNNER_TEMP}/mytemp/${ZIP_FILE}" >> $GITHUB_ENV
