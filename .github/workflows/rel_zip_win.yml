@@ -3,8 +3,8 @@ name: rel_zip_win
 on:
   push:
     tags:
-      - 'v*'   # タグ push 時に実行
-      - '[0-9]*'   # 0, 1, 2...で始まるタグ（例: 1.0.0, 2.1.3 など）で実行
+      - 'v*'  # 例: v1.0.0
+      - '[0-9]*'  # 例: 1.0.0, 2.1.3
 
 permissions:
   contents: write
@@ -18,48 +18,63 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Makefile実行
+      - name: Install dependencies
         run: |
-          make   # 必要なら 'make build' などターゲット名を指定
+          sudo apt-get update
+          sudo apt-get install -y jq zip unzip
 
-      - name: Install jq
-        run: sudo apt-get install -y jq
+      - name: Run Makefile
+        run: |
+          make  # 必要なら 'make build' などターゲット名を指定
+        shell: bash
 
       - name: Download latest other tag source
         run: |
           mkdir -p "${RUNNER_TEMP}/mytemp"
           pushd "${RUNNER_TEMP}/mytemp"
-          OWNER="inaud"           # リポジトリオーナー
-          REPO="zig_print_test"   # リポジトリ名
-          LATEST_TAG=$(curl -s https://api.github.com/repos/${OWNER}/${REPO}/tags | jq -r '.[0].name')
-          curl -L -O https://github.com/${OWNER}/${REPO}/archive/refs/tags/${LATEST_TAG}.zip
-          unzip ${REPO}-${LATEST_TAG}.zip
-          # 必要に応じてフォルダ移動
-          #pushd ${REPO}-${LATEST_TAG}
-          #echo "Working in $(pwd)"
-          #ls -la
-          tree
+          OWNER="inaud"
+          REPO="zig_print_test"
+          echo "Fetching tags from https://api.github.com/repos/${OWNER}/${REPO}/tags"
+          LATEST_TAG=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${OWNER}/${REPO}/tags | jq -r '.[0].name')
+          if [ -z "$LATEST_TAG" ]; then
+            echo "Error: No tags found in ${OWNER}/${REPO}"
+            exit 1
+          fi
+          echo "Latest tag: ${LATEST_TAG}"
+          DOWNLOAD_URL="https://github.com/${OWNER}/${REPO}/archive/refs/tags/${LATEST_TAG}.zip"
+          echo "Downloading from ${DOWNLOAD_URL}"
+          curl -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o "${REPO}-${LATEST_TAG}.zip" "${DOWNLOAD_URL}"
+          if [ ! -f "${REPO}-${LATEST_TAG}.zip" ]; then
+            echo "Error: Failed to download ${REPO}-${LATEST_TAG}.zip"
+            ls -la
+            exit 1
+          fi
+          unzip -o "${REPO}-${LATEST_TAG}.zip"  # -o で上書きを許可
+          echo "Working in $(pwd)"
+          tree || ls -R
           popd
-      - name: zip作成
+        shell: bash
+
+      - name: Create zip
         run: |
           REF_NAME="${{ github.ref_name }}"
           ZIP_FILE="${REL_NAME}-${REF_NAME}.zip"
-          zip -r "$ZIP_FILE" dir1 dir2 Makefile README.md
+          if [ -d "dir1" ] && [ -d "dir2" ] && [ -f "Makefile" ] && [ -f "README.md" ]; then
+            zip -r "$ZIP_FILE" dir1 dir2 Makefile README.md
+          else
+            echo "Error: Required files/directories (dir1, dir2, Makefile, README.md) not found"
+            ls -la
+            exit 1
+          fi
           cp "$ZIP_FILE" "${RUNNER_TEMP}/"
           pushd "${RUNNER_TEMP}"
-          unzip  "$ZIP_FILE"
-          tree
+          unzip -o "$ZIP_FILE"
+          tree || ls -R
           popd
+          echo "ZIP_FILE=${RUNNER_TEMP}/${ZIP_FILE}" >> $GITHUB_ENV
         shell: bash
 
-      - name: リリースにアップロード
-        run: |
-          REF_NAME="${{ github.ref_name }}"
-          ZIP_FILE="${REL_NAME}-${REF_NAME}.zip"
-          echo "ZIP_FILE=$ZIP_FILE" >> $GITHUB_ENV
-        shell: bash
-
-      - name: アップロード
+      - name: Upload to release
         uses: softprops/action-gh-release@v2
         with:
           files: "${{ env.ZIP_FILE }}"
