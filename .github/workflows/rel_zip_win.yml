@@ -13,9 +13,9 @@ jobs:
   build-and-release:
     runs-on: ubuntu-latest
     env:
-      REL_NAME: "${{ github.repository_name }}"
+      REL_NAME: "test_actions"
       OTHER_REPO: "zig_print_test"
-      OWNER: "${{ github.repository_owner }}"
+      OWNER: "inaud"
 
     steps:
       - uses: actions/checkout@v4
